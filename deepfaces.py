@@ -728,27 +728,52 @@ for i in range(180):
 print("Predicion: {}".format(sess.run(cp, feed_dict={x:[test_input], test_a2b:[test_answer]})[0]))
 
 
-## Attempt one, try to find the image that activate neruon the most
-max_activatoin = [0,]*30
-max_acv_index = [None,]*30
-for ni in range(30):
-    for ii in range(360):
-        test_input = train_x[ii]
-        # Loop thourhg each image in the training set, and find the one that activate neruon ni the most
-        at = sess.run(fc5, feed_dict={x:[test_input]})[0][ni]
-        if at > max_activatoin[ni]:
-            max_activatoin[ni] = at;
-            max_acv_index[ni] = ii;
 
-print(max_activatoin)
-print(max_acv_index)
+#Layers:
+# x
+# Conv1
+# lrn1
+# maxpool1
+# conv2
+# lrn2
+# maxpool2
+# conv3
+# conv4
 
-j = -1
-for i in max_acv_index:
-    j += 1
-    if i == None:
-        continue
-    display_image(train_x[i], "Max Activation, Neruon {}, Image {}".format(i))
+# fc5
+# fc6
+# output  = softmax(fc6)
+
+ys = [x]
+xs = [fc6]
+
+grad_bak = tf.gradients(ys,xs)
+
+
+
+
+# 
+# ## Attempt one, try to find the image that activate neruon the most
+# max_activatoin = [0,]*30
+# max_acv_index = [None,]*30
+# for ni in range(30):
+#     for ii in range(360):
+#         test_input = train_x[ii]
+#         # Loop thourhg each image in the training set, and find the one that activate neruon ni the most
+#         at = sess.run(fc5, feed_dict={x:[test_input]})[0][ni]
+#         if at > max_activatoin[ni]:
+#             max_activatoin[ni] = at;
+#             max_acv_index[ni] = ii;
+# 
+# print(max_activatoin)
+# print(max_acv_index)
+# 
+# j = -1
+# for i in max_acv_index:
+#     j += 1
+#     if i == None:
+#         continue
+#     display_image(train_x[i], "Max Activation, Neruon {}, Image {}".format(i))
 
 ## Reminder of correct output
 # bill =    [0,0,0,0,0,1]   argmax = 5
