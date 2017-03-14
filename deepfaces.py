@@ -31,7 +31,7 @@ import shutil
 from matplotlib.pyplot import *
 import scipy
 
-
+import cPickle
 import tensorflow as tf
 
 from caffe_classes import class_names
@@ -596,8 +596,7 @@ for i in range(18):
     test_cv4 = np.append(test_cv4, sess.run(conv4, feed_dict = {x: test_x[i*10:(i+1)*10]}),axis=0)
     
 ## WE ARE DONE WITH EXTRACTION OF CONV4, NOW MAKE A NEW NETWORK TO LEARN
-def training_stuff():
-    pass
+
 
 # Size of conv4 output is (13, 13, 384)
 cv4_out = tf.placeholder(tf.float32, (None,) + (13, 13, 384))
@@ -609,11 +608,12 @@ b0 = tf.Variable(tf.random_normal([nhid], stddev=0.0001, seed=411))
 W1 = tf.Variable(tf.random_normal([nhid, 6], stddev=0.0001, seed=411))
 b1 = tf.Variable(tf.random_normal([6], stddev=0.0001, seed=411))
 
-# snapshot = cPickle.load(open("snapshot50.pkl"))
-# W0 = tf.Variable(snapshot["W0"])
-# b0 = tf.Variable(snapshot["b0"])
-# W1 = tf.Variable(snapshot["W1"])
-# b1 = tf.Variable(snapshot["b1"])
+
+snapshot = cPickle.load(open("snapshot_trained.pkl", "rb"))
+W0 = tf.Variable(snapshot["W0"])
+b0 = tf.Variable(snapshot["b0"])
+W1 = tf.Variable(snapshot["W1"])
+b1 = tf.Variable(snapshot["b1"])
 
 layer1 = tf.nn.relu(tf.matmul(tf.reshape(cv4_out, [-1, int(prod(cv4_out.get_shape()[1:]))]), W0)+b0)
 layer2 = tf.matmul(layer1, W1)+b1
@@ -640,49 +640,52 @@ plot_test = []
 plot_train = []
 plot_vali = []
 
-iter = 400
-for i in range(iter):
-    #print i  
-    #batch_xs, batch_ys = get_train_batch(M, 500)
-    sess.run(train_step, feed_dict={cv4_out: train_cv4, y_: train_y})
-    
-    if i % 1 == 0:
-        plot_test.append(sess.run(accuracy, feed_dict={cv4_out: test_cv4, y_: test_y}))
-        plot_train.append(sess.run(accuracy, feed_dict={cv4_out: train_cv4, y_: train_y}))
-        plot_vali.append(sess.run(accuracy, feed_dict={cv4_out: vali_cv4, y_: vali_y}))
-        plot_x.append(i)
-    
-    if i % 10 == 0:
-        print "i=",i
-        print "Test:", plot_test[-1]
-    
-        print "Train:", plot_train[-1]
-        print "Penalty:", sess.run(decay_penalty)
-    
-    
-        snapshot = {}
-        snapshot["W0"] = sess.run(W0)
-        snapshot["W1"] = sess.run(W1)
-        snapshot["b0"] = sess.run(b0)
-        snapshot["b1"] = sess.run(b1)
-        #cPickle.dump(snapshot,  open("new_snapshot"+str(i)+".pkl", "w"))
+
+
+def training_stuff():
+    pass
+    iter = 400
+    for i in range(iter):
+        #print i  
+        #batch_xs, batch_ys = get_train_batch(M, 500)
+        sess.run(train_step, feed_dict={cv4_out: train_cv4, y_: train_y})
         
-try:
-    plt.figure()
-    plt.plot(plot_x, plot_train, '-g', label='Training')
-    plt.plot(plot_x, plot_vali, '-r', label='Validation')
-    plt.plot(plot_x, plot_test, '-b', label='Test')
-    plt.xlabel("Training Iterations")
-    plt.ylabel("Accuracy")
-    plt.title("Traning Curve for Single Hidden Layer NN")
-    plt.legend(loc='bottom right')
-    plt.show()
-except:
-    print("plot fail")
+        if i % 1 == 0:
+            plot_test.append(sess.run(accuracy, feed_dict={cv4_out: test_cv4, y_: test_y}))
+            plot_train.append(sess.run(accuracy, feed_dict={cv4_out: train_cv4, y_: train_y}))
+            plot_vali.append(sess.run(accuracy, feed_dict={cv4_out: vali_cv4, y_: vali_y}))
+            plot_x.append(i)
+        
+        if i % 10 == 0:
+            print "i=",i
+            print "Test:", plot_test[-1]
+        
+            print "Train:", plot_train[-1]
+            print "Penalty:", sess.run(decay_penalty)
+            
+    try:
+        plt.figure()
+        plt.plot(plot_x, plot_train, '-g', label='Training')
+        plt.plot(plot_x, plot_vali, '-r', label='Validation')
+        plt.plot(plot_x, plot_test, '-b', label='Test')
+        plt.xlabel("Training Iterations")
+        plt.ylabel("Accuracy")
+        plt.title("Traning Curve for Single Hidden Layer NN")
+        plt.legend(loc='bottom right')
+        plt.show()
+    except:
+        print("plot fail")
     
+    snapshot = {}
+    snapshot["W0"] = sess.run(W0)
+    snapshot["W1"] = sess.run(W1)
+    snapshot["b0"] = sess.run(b0)
+    snapshot["b1"] = sess.run(b1)
+    cPickle.dump(snapshot,  open("snapshot_trained.pkl", "wb"))
+
+
 print "Final test set accuracy:"
 print (sess.run(accuracy, feed_dict={cv4_out: test_cv4, y_: test_y}))
-
 
 ##########################
 ## BONUS CONTENT BEGINS ##
